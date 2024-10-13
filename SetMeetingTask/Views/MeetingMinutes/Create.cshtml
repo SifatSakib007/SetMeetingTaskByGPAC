@@ -1,0 +1,285 @@
+﻿@{
+    ViewData["Title"] = "Create Meeting Minutes";
+}
+
+<div class="border P-2">
+    <div class="border">
+        <h3 class="p-1">Meeting Minutes</h3>
+    </div>
+    <div class="border p-3">
+        <input type="radio" name="Customertype" value="Corporate" id="Corporate">
+        <label for="Corporate">Corporate</label>
+        <input type="radio" name="Customertype" value="Individuals" id="Individuals">
+        <label for="Individuals">Individuals</label><br>
+    </div>
+    <form id="meetingForm">
+        <div class="boprder row p-2">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="CustomerName">Customer Name <span class="text-danger">*</span></label>
+                    <select id="CustomerName" class="form-control" name="CustomerName">
+                        <option value="">select customer name</option>
+                    </select>
+
+                </div>
+                <div class="form-group">
+                    <label for="Date">Date <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="date" id="Date" class="form-control" name="Date">
+                        <div class="input-group-append">
+                            <span class="input-group-text">Time</span>
+                            <input type="time" id="Time" class="form-control" name="Time">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="MeetingPlace">Meeting Place <span class="text-danger">*</span></label>
+                    <input type="text" id="MeetingPlace" class="form-control" name="MeetingPlace" placeholder="meeting place">
+                </div>
+                <div class="form-group">
+                    <label for="AttendsFromClientSide">Attends From Client Side <span class="text-danger">*</span></label>
+                    <input type="text" id="AttendsFromClientSide" class="form-control" name="AttendsFromClientSide" placeholder="Present client side">
+                </div>
+                <div class="form-group">
+                    <label for="AttendsFromHostSide">Attends From Host Side <span class="text-danger">*</span></label>
+                    <input type="text" id="AttendsFromHostSide" class="form-control" name="AttendsFromHostSide" placeholder="Present self side">
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="MeetingAgenda">Meeting Agenda <span class="text-danger">*</span></label>
+                    <textarea id="MeetingAgenda" class="form-control" name="MeetingAgenda" placeholder="Meeting agenda" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="MeetingDiscussion">Meeting Discussion <span class="text-danger">*</span></label>
+                    <textarea id="MeetingDiscussion" class="form-control" name="MeetingDiscussion" placeholder="Meeting discussion" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="MeetingDecision">Meeting Decision <span class="text-danger">*</span></label>
+                    <textarea id="MeetingDecision" class="form-control" name="MeetingDecision" placeholder="Meeting decision" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Interested Product/Service Section -->
+<div class="border p-2 mt-4">
+    <h4>Interested Product/Service</h4>
+    <form id="productServiceForm">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="ProductService">Interested Product/Service</label>
+                    <select id="ProductService" class="form-control" name="ProductService">
+                        <option value="">select product/service interested</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="Quantity">Quantity</label>
+                    <input type="number" id="Quantity" class="form-control" name="Quantity" placeholder="Quantity">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="Unit">Unit</label>
+                    <input type="text" id="Unit" class="form-control" name="Unit" placeholder="Unit" readonly>
+                </div><br />
+                <div>
+                    <button type="button" class="btn btn-primary" id="AddProductService">Add</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-bordered mt-4" id="ProductServiceTable">
+        <thead>
+            <tr>
+                <th>Product/Service</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="noRecordsRow">
+                <td colspan="4" class="text-center">No matching records found</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Submit and Refresh Buttons -->
+<div class="mt-4">
+    <button type="button" class="btn btn-success" id="submitForm">Submit</button>
+    <button type="button" class="btn btn-secondary" id="refreshForm">Refresh</button>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('input[name="Customertype"]').change(function () {
+                var customerType = $('input[name="Customertype"]:checked').val();
+                $.ajax({
+                    url: '/MeetingMinutes/GetCustomers',
+                    type: 'GET',
+                    data: { customerType: customerType },
+                    success: function (data) {
+                        var $customerName = $('#CustomerName');
+                        $customerName.empty();
+                        $customerName.append('<option value="">select customer name</option>');
+                        $.each(data, function (index, value) {
+                            $customerName.append('<option value="' + value + '">' + value + '</option>');
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+            // Fetch all products/services when the page loads
+            $.ajax({
+                url: '/MeetingMinutes/GetAllProducts',
+                type: 'GET',
+                success: function (data) {
+                    var $productService = $('#ProductService');
+                    $productService.empty();
+                    $productService.append('<option value="">select product/service</option>');
+                    $.each(data, function (index, value) {
+                        $productService.append('<option value="' + value + '">' + value + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr.responseText);
+                }
+            });
+
+            $('#ProductService').change(function () {
+                var selectedProduct = $(this).val();
+                $.ajax({
+                    url: '/MeetingMinutes/GetUnit',
+                    type: 'GET',
+                    data: { productName: selectedProduct },
+                    success: function (data) {
+                        $('#Unit').val(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+            $('#AddProductService').click(function () {
+                var productService = $('#ProductService').val();
+                var quantity = $('#Quantity').val();
+                var unit = $('#Unit').val();
+
+                if (productService && quantity && unit) {
+                    var row = '<tr><td>' + productService + '</td><td>' + quantity + '</td><td>' + unit + '</td><td><button type="button" class="btn btn-primary edit-product">Edit</button> <button type="button" class="btn btn-danger remove-product">Remove</button></td></tr>';
+                    $('#ProductServiceTable tbody').append(row);
+
+                    // Clear the input fields
+                    $('#ProductService').val('');
+                    $('#Quantity').val('');
+                    $('#Unit').val('');
+
+                    // Remove 'No matching records found' message
+                    $('#noRecordsRow').remove();
+                } else {
+                    alert('Please fill out all fields for the product/service.');
+                }
+            });
+
+            $(document).on('click', '.remove-product', function () {
+                if (confirm('Are you sure you want to remove this product/service?')) {
+                    $(this).closest('tr').remove();
+
+                    // Check if there are any rows left in the table, if not show the 'No matching records found' message
+                    if ($('#ProductServiceTable tbody tr').length == 0) {
+                        $('#ProductServiceTable tbody').append('<tr id="noRecordsRow"><td colspan="4" class="text-center">No matching records found</td></tr>');
+                    }
+                }
+            });
+
+            $(document).on('click', '.edit-product', function () {
+                var row = $(this).closest('tr');
+                var productService = row.find('td:eq(0)').text();
+                var quantity = row.find('td:eq(1)').text();
+                var unit = row.find('td:eq(2)').text();
+
+                // Set the values in the form fields
+                $('#ProductService').val(productService);
+                $('#Quantity').val(quantity);
+                $('#Unit').val(unit);
+
+                // Remove the row being edited
+                row.remove();
+
+                // Check if there are any rows left in the table, if not show the 'No matching records found' message
+                if ($('#ProductServiceTable tbody tr').length == 0) {
+                    $('#ProductServiceTable tbody').append('<tr id="noRecordsRow"><td colspan="4" class="text-center">No matching records found</td></tr>');
+                }
+            });
+
+            $('#submitForm').click(function () {
+                var meetingMaster = {
+                    CustomerName: $('#CustomerName').val(),
+                    MeetingDate: $('#Date').val(),
+                    MeetingPlace: $('#MeetingPlace').val(),
+                    AttendsClient: $('#AttendsFromClientSide').val(),
+                    AttendsHost: $('#AttendsFromHostSide').val(),
+                    Agenda: $('#MeetingAgenda').val(),
+                    Discussion: $('#MeetingDiscussion').val(),
+                    Decision: $('#MeetingDecision').val()
+                };
+
+                var meetingDetails = [];
+                $('#ProductServiceTable tbody tr').each(function () {
+                    var productService = $(this).find('td:eq(0)').text();
+                    var quantity = $(this).find('td:eq(1)').text();
+                    var unit = $(this).find('td:eq(2)').text();
+
+                    meetingDetails.push({
+                        ProductName: productService,
+                        Quantity: quantity,
+                        Unit: unit
+                    });
+                });
+
+                var meetingViewModel = {
+                    MeetingMaster: meetingMaster,
+                    MeetingDetails: meetingDetails
+                };
+
+                $.ajax({
+                    url: '/MeetingMinutes/SaveMeetingData',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(meetingViewModel),
+                    success: function (response) {
+                        alert(response.message);
+                    },
+                    error: function (error) {
+                        alert('An error occurred while saving the data.');
+                    }
+                });
+            });
+
+            $('#refreshForm').click(function () {
+                // Clear the form fields
+                $('#meetingForm')[0].reset();
+                $('#productServiceForm')[0].reset();
+
+                // Clear the table
+                $('#ProductServiceTable tbody').empty();
+
+                // Add 'No matching records found' message
+                $('#ProductServiceTable tbody').append('<tr id="noRecordsRow"><td colspan="4" class="text-center">No matching records found</td></tr>');
+            });
+        });
+    </script>
+}
